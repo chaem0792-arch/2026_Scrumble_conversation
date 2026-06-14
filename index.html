@@ -5,6 +5,48 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AI 대화 연습 에이전트</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .profile-dropdown {
+      position: absolute;
+      top: calc(100% + 10px);
+      right: 0;
+      width: 220px;
+      background: #1e293b;
+      border: 1.5px solid rgba(71,85,105,0.5);
+      border-radius: 20px;
+      padding: 12px;
+      z-index: 999;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.6);
+      opacity: 0;
+      transform: translateY(-8px) scale(0.97);
+      pointer-events: none;
+      transition: opacity 0.18s ease, transform 0.18s ease;
+    }
+    .profile-dropdown.open {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: all;
+    }
+    .dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-size: 14px;
+      color: #cbd5e1;
+      cursor: pointer;
+      transition: background 0.15s;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+    }
+    .dropdown-item:hover { background: rgba(99,102,241,0.1); color: #fff; }
+    .dropdown-item.danger:hover { background: rgba(239,68,68,0.1); color: #f87171; }
+    .dropdown-divider { height: 1px; background: rgba(71,85,105,0.35); margin: 6px 0; }
+    .avatar-ring { box-shadow: 0 0 0 2px #6366f1, 0 0 0 4px rgba(99,102,241,0.25); }
+  </style>
 </head>
 <body class="bg-slate-950 text-white min-h-screen font-sans">
   <div class="max-w-md mx-auto min-h-screen flex flex-col px-5 py-6">
@@ -16,78 +58,84 @@
         <h1 class="text-3xl font-bold mt-1">AI Conversation</h1>
       </div>
 
-      <div class="w-12 h-12 rounded-2xl bg-indigo-500 flex items-center justify-center text-xl font-bold shadow-lg shadow-indigo-500/30">
-        AI
+      <!-- 로그인/프로필 버튼 영역 -->
+      <div class="relative" id="profile-area">
+
+        <!-- 비로그인: 로그인 버튼 -->
+        <button
+          id="login-btn"
+          onclick="window.location.href='login.html'"
+          class="w-12 h-12 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-semibold text-slate-300 hover:border-indigo-500 hover:text-indigo-400 transition"
+        >
+          로그인
+        </button>
+
+        <!-- 로그인 상태: 아바타 버튼 -->
+        <button
+          id="avatar-btn"
+          onclick="toggleDropdown()"
+          class="hidden w-12 h-12 rounded-2xl bg-indigo-500 items-center justify-center text-lg font-bold avatar-ring transition"
+        >
+          <span id="avatar-emoji">😊</span>
+        </button>
+
+        <!-- 드롭다운 -->
+        <div class="profile-dropdown" id="dropdown">
+          <div class="flex items-center gap-3 px-2 py-2 mb-1">
+            <div class="w-10 h-10 rounded-xl bg-indigo-500 flex items-center justify-center text-base flex-shrink-0" id="dropdown-avatar">😊</div>
+            <div class="overflow-hidden">
+              <p class="font-semibold text-sm truncate" id="dropdown-name">이름</p>
+              <p class="text-xs text-slate-400 truncate" id="dropdown-email">email</p>
+            </div>
+          </div>
+          <div class="dropdown-divider"></div>
+          <button class="dropdown-item"><span>👤</span> 프로필 보기</button>
+          <button class="dropdown-item"><span>📊</span> 내 학습 기록</button>
+          <button class="dropdown-item"><span>⚙️</span> 설정</button>
+          <div class="dropdown-divider"></div>
+          <button class="dropdown-item danger" onclick="logout()"><span>🚪</span> 로그아웃</button>
+        </div>
       </div>
     </header>
 
-    <!-- Hero Section -->
+    <!-- Hero -->
     <section class="bg-gradient-to-br from-indigo-500 to-violet-600 rounded-3xl p-6 shadow-2xl mb-8 relative overflow-hidden">
       <div class="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full"></div>
       <div class="absolute -bottom-12 -left-8 w-28 h-28 bg-white/10 rounded-full"></div>
-
       <div class="relative z-10">
         <p class="text-sm text-indigo-100 mb-2">추천 연습</p>
-        <h2 class="text-2xl font-bold leading-snug mb-3">
-          오늘은 면접 답변을
-          <br />
-          연습해볼까요?
-        </h2>
-
-        <p class="text-sm text-indigo-100 leading-relaxed mb-5">
-          AI와 실제 상황처럼 대화하면서
-          자신감 있게 답변하는 연습을 해보세요.
-        </p>
-
-        <button class="bg-white text-indigo-700 font-semibold px-5 py-3 rounded-2xl hover:scale-[1.02] transition">
-          바로 시작하기
-        </button>
+        <h2 class="text-2xl font-bold leading-snug mb-3">오늘은 면접 답변을<br />연습해볼까요?</h2>
+        <p class="text-sm text-indigo-100 leading-relaxed mb-5">AI와 실제 상황처럼 대화하면서<br>자신감 있게 답변하는 연습을 해보세요.</p>
+        <button class="bg-white text-indigo-700 font-semibold px-5 py-3 rounded-2xl hover:scale-[1.02] transition">바로 시작하기</button>
       </div>
     </section>
 
-    <!-- Category Section -->
+    <!-- Categories -->
     <section class="mb-8">
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-xl font-semibold">대화 카테고리</h3>
         <button class="text-sm text-slate-400">전체 보기</button>
       </div>
-
       <div class="grid grid-cols-2 gap-4">
-
         <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 hover:border-indigo-500 transition cursor-pointer">
           <div class="text-3xl mb-4">🌍</div>
           <h4 class="font-semibold text-lg mb-1">외국어</h4>
-          <p class="text-sm text-slate-400 leading-relaxed">
-            영어·일본어 등
-            실전 회화 연습
-          </p>
+          <p class="text-sm text-slate-400 leading-relaxed">영어·일본어 등 실전 회화 연습</p>
         </div>
-
         <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 hover:border-pink-500 transition cursor-pointer">
           <div class="text-3xl mb-4">💬</div>
           <h4 class="font-semibold text-lg mb-1">친구 대화</h4>
-          <p class="text-sm text-slate-400 leading-relaxed">
-            자연스럽고 편한
-            일상 대화 연습
-          </p>
+          <p class="text-sm text-slate-400 leading-relaxed">자연스럽고 편한 일상 대화 연습</p>
         </div>
-
         <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 hover:border-amber-500 transition cursor-pointer">
           <div class="text-3xl mb-4">🎩</div>
           <h4 class="font-semibold text-lg mb-1">격식 대화</h4>
-          <p class="text-sm text-slate-400 leading-relaxed">
-            발표·회의·공식 자리
-            표현 익히기
-          </p>
+          <p class="text-sm text-slate-400 leading-relaxed">발표·회의·공식 자리 표현 익히기</p>
         </div>
-
         <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 hover:border-emerald-500 transition cursor-pointer">
           <div class="text-3xl mb-4">🧑‍💼</div>
           <h4 class="font-semibold text-lg mb-1">면접</h4>
-          <p class="text-sm text-slate-400 leading-relaxed">
-            실전 질문 기반
-            답변 훈련
-          </p>
+          <p class="text-sm text-slate-400 leading-relaxed">실전 질문 기반 답변 훈련</p>
         </div>
       </div>
     </section>
@@ -98,55 +146,79 @@
         <h3 class="text-xl font-semibold">최근 연습</h3>
         <button class="text-sm text-slate-400">더보기</button>
       </div>
-
       <div class="space-y-3">
-
         <div class="bg-slate-900 rounded-2xl p-4 border border-slate-800 flex items-center justify-between">
           <div>
             <p class="font-medium">영어 카페 주문 연습</p>
             <p class="text-sm text-slate-400 mt-1">외국어 · 12분 전</p>
           </div>
-
-          <button class="text-sm bg-slate-800 px-4 py-2 rounded-xl hover:bg-slate-700 transition">
-            이어하기
-          </button>
+          <button class="text-sm bg-slate-800 px-4 py-2 rounded-xl hover:bg-slate-700 transition">이어하기</button>
         </div>
-
         <div class="bg-slate-900 rounded-2xl p-4 border border-slate-800 flex items-center justify-between">
           <div>
             <p class="font-medium">대학 면접 대비</p>
             <p class="text-sm text-slate-400 mt-1">면접 · 어제</p>
           </div>
-
-          <button class="text-sm bg-slate-800 px-4 py-2 rounded-xl hover:bg-slate-700 transition">
-            이어하기
-          </button>
+          <button class="text-sm bg-slate-800 px-4 py-2 rounded-xl hover:bg-slate-700 transition">이어하기</button>
         </div>
       </div>
     </section>
 
-    <!-- Bottom Navigation -->
+    <!-- Bottom Nav -->
     <nav class="mt-auto bg-slate-900 border border-slate-800 rounded-3xl px-6 py-4 flex justify-between items-center sticky bottom-4">
-      <button class="flex flex-col items-center text-indigo-400 text-sm">
-        <span class="text-xl mb-1">🏠</span>
-        홈
-      </button>
-
-      <button class="flex flex-col items-center text-slate-500 text-sm">
-        <span class="text-xl mb-1">🎤</span>
-        연습
-      </button>
-
-      <button class="flex flex-col items-center text-slate-500 text-sm">
-        <span class="text-xl mb-1">📈</span>
-        기록
-      </button>
-
-      <button class="flex flex-col items-center text-slate-500 text-sm">
-        <span class="text-xl mb-1">⚙️</span>
-        설정
-      </button>
+      <button class="flex flex-col items-center text-indigo-400 text-sm"><span class="text-xl mb-1">🏠</span>홈</button>
+      <button class="flex flex-col items-center text-slate-500 text-sm"><span class="text-xl mb-1">🎤</span>연습</button>
+      <button class="flex flex-col items-center text-slate-500 text-sm"><span class="text-xl mb-1">📈</span>기록</button>
+      <button class="flex flex-col items-center text-slate-500 text-sm"><span class="text-xl mb-1">⚙️</span>설정</button>
     </nav>
   </div>
+
+  <script>
+    // ── 로그인 상태 체크 ──────────────────────────────────────
+    // login.html에서 로그인 성공 시 아래처럼 저장:
+    // localStorage.setItem('user', JSON.stringify({ name:'김민수', email:'minsu@email.com', emoji:'😊' }))
+
+    function getUser() {
+      try { return JSON.parse(localStorage.getItem('user')); } catch { return null; }
+    }
+
+    function applyLoginState() {
+      const user = getUser();
+      const loginBtn  = document.getElementById('login-btn');
+      const avatarBtn = document.getElementById('avatar-btn');
+
+      if (user) {
+        loginBtn.classList.add('hidden');
+        avatarBtn.classList.remove('hidden');
+        avatarBtn.classList.add('flex');
+        document.getElementById('avatar-emoji').textContent    = user.emoji || '😊';
+        document.getElementById('dropdown-avatar').textContent = user.emoji || '😊';
+        document.getElementById('dropdown-name').textContent   = user.name;
+        document.getElementById('dropdown-email').textContent  = user.email;
+      } else {
+        loginBtn.classList.remove('hidden');
+        avatarBtn.classList.add('hidden');
+        avatarBtn.classList.remove('flex');
+      }
+    }
+
+    function toggleDropdown() {
+      document.getElementById('dropdown').classList.toggle('open');
+    }
+
+    document.addEventListener('click', function(e) {
+      if (!document.getElementById('profile-area').contains(e.target)) {
+        document.getElementById('dropdown').classList.remove('open');
+      }
+    });
+
+    function logout() {
+      localStorage.removeItem('user');
+      document.getElementById('dropdown').classList.remove('open');
+      applyLoginState();
+    }
+
+    applyLoginState();
+  </script>
 </body>
 </html>

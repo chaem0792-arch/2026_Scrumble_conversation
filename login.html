@@ -255,7 +255,20 @@
     }
 
     function goToHome() {
-      // index.html로 이동 (GitHub Pages 배포 후 연결)
+      // 이메일 입력값 가져오기
+      const emailInput = document.querySelector('input[type="email"]');
+      const email = emailInput ? emailInput.value.trim() : '';
+
+      // 이메일에서 이름 추정 (@ 앞부분), 없으면 기본값
+      const name = email ? email.split('@')[0] : '사용자';
+
+      // 로그인 정보를 localStorage에 저장 → index.html에서 읽음
+      localStorage.setItem('user', JSON.stringify({
+        name: name,
+        email: email || 'user@email.com',
+        emoji: '😊'
+      }));
+
       window.location.href = 'index.html';
     }
   </script>
